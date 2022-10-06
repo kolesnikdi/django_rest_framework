@@ -1,0 +1,11 @@
+.idea/
+*.sqlite3
+*.pyc
+__pycache__
+venv
+/static
+.DS_Store
+.env
+staticfiles/
+blog/static/admin/
+
