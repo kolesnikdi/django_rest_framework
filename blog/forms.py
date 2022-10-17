@@ -5,28 +5,18 @@ from blog.models import Post
 """
 FOR DRF
 """
-from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 
 
-class PostForm(forms.ModelForm):
-    class Meta:
-        model = Post
-        fields = ('title', 'text',)
-
-
-"""
-FOR DRF
-"""
-
-
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = User
-        fields = ['url', 'username', 'email', 'groups']
+# class PostForm(forms.ModelForm):
+#     class Meta:
+#         model = Post
+#         fields = ('title', 'text',)
 
 
 class SnippetSerializer(serializers.HyperlinkedModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')  # was changed
+    # text = serializers.HyperlinkedIdentityField(view_name='blog-text', format='html')  # was changed. Problem code/
     class Meta:
         model = Post
-        fields = ['title', 'text',]
+        fields = ['title', 'text', "id", 'author']
