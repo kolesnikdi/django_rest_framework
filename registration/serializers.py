@@ -32,25 +32,6 @@ class RegisterConfirmSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return attrs
 
-    def create(self, validated_data):
-        user = User.objects.create(
-            username=validated_data['username'],
-            # todo: can't correctly solve problem --> UNIQUE constraint failed: auth_user.email. only (email=validated_data['username']) helps
-            email=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
-
-        user.set_password(validated_data['password'])
-        user.save()
-
-        return user
-
-    def update(self, instance, validated_data):
-        """without this function can't change email in views.py RegisterConfirmView"""
-        instance.email = validated_data.get('email', instance.email)
-        return instance
-
 
 class CreateRegisterTrySerializer(serializers.ModelSerializer):
     class Meta:

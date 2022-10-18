@@ -137,3 +137,10 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     # 'DEFAULT_AUTHENTICATION_CLASSES': 'knox.auth.TokenAuthentication',  # new 11.10.2022 Why it breaks code
 }
+
+# email
+EMAIL_HOST = 'smtp.ukr.net'
+# EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.ukr.net')  # todo: for why we need "os.environ.get"?
+EMAIL_PORT = 2525
+# EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 2525))   # todo: for why we need "os.environ.get"?
+EMAIL_USE_SSL = True
