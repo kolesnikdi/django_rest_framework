@@ -8,4 +8,4 @@ class SnippetSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Post
-        fields = ['title', 'text', "id", 'author']
+        fields = ['title', 'text', 'id', 'author']

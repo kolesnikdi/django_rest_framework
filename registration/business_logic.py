@@ -5,12 +5,14 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
+from django.conf import settings
+
 env = environ.Env()
 environ.Env.read_env()
 
 def final_send_mail(reg_try):
     context = {
-        'registration_link': f'http://127.0.0.1:8000/registration/{reg_try.code}'
+        'registration_link': f'{settings.HOST}/registration/{reg_try.code}'
         # more data here for customisation email.
     }
 
