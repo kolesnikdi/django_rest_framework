@@ -1,12 +1,11 @@
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
 
 from rest_framework import generics, viewsets, status
 from rest_framework.response import Response
 
 from registration.models import RegistrationTry
 from registration.serializers import RegisterConfirmSerializer, CreateRegisterTrySerializer, UserSerializer
-from registration.business_logic import mail, final_creation
+from registration.business_logic import final_send_mail, final_creation
 from mysite.permissions import IsNotAuthenticated, IsAdminUserOrReadOnly
 
 
@@ -28,9 +27,7 @@ class RegisterTryView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         reg_try = serializer.save()
-        send_mail(**mail, recipient_list=[reg_try.email],
-                  html_message=f"http://127.0.0.1:8000/registration/{reg_try.code}")
-        # todo: How correctly write html_message?
+        final_send_mail(reg_try)
 
         return Response(
             self.serializer_class(instance=reg_try).data,
@@ -49,7 +46,7 @@ class RegisterConfirmView(generics.CreateAPIView):
         reg_try = self.get_object()
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user, reg_try = final_creation(serializer, reg_try)
+        user = final_creation(serializer.validated_data, reg_try)
 
         return Response(
             UserSerializer(instance=user, context=serializer_context).data,

@@ -4,19 +4,5 @@ django-rest-knox==4.2.0
 pygments==2.13.0
 dj-static==0.0.6
 static3==0.7.0
-WhiteNoise==6.2.0
 django-environ==0.9.0
-#mysite = tutorial
-#blog = snippets
-#blog.forms = serializers
-#Post = Snippet
-#Problems:
-#1. Not Found: /_post/img/grid.png
-#[11/Oct/2022 12:25:00] "GET /_post/img/grid.png HTTP/1.1" 404 5979
-#2. blog.forms = 32 line. from tutorial -https://www-django--rest--framework-org.translate.goog/tutorial/5-relationships-and-hyperlinked-apis/?_x_tr_sl=auto&_x_tr_tl=uk&_x_tr_hl=uk&_x_tr_pto=wapp
-#This line breaks code. And I can't understand for why it needs
-#3. registration.serializers = 7 line. How to see not id of blog but text
-#4. registration.views = 13 line. How to kill function to create new authors. How to left function to change
-#author of the blog only for Admin.
-#5. mysite.settings - 138 line breaks code
 

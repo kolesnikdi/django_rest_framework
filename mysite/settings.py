@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'blog',
     'rest_framework',
     'knox',
-    'registration'
+    'registration',
 ]
 
 MIDDLEWARE = [
@@ -140,7 +140,5 @@ REST_FRAMEWORK = {
 
 # email
 EMAIL_HOST = 'smtp.ukr.net'
-# EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.ukr.net')  # todo: for why we need "os.environ.get"?
 EMAIL_PORT = 2525
-# EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 2525))   # todo: for why we need "os.environ.get"?
 EMAIL_USE_SSL = True
