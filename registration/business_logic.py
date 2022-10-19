@@ -10,6 +10,7 @@ from django.conf import settings
 env = environ.Env()
 environ.Env.read_env()
 
+
 def final_send_mail(reg_try):
     context = {
         'registration_link': f'{settings.HOST}/registration/{reg_try.code}'
@@ -29,6 +30,7 @@ def final_send_mail(reg_try):
     send_mail(**registration_mail)
 
 
+# testit
 def final_creation(validated_data, reg_try):
     user = User.objects.create(
         username=validated_data['username'],
