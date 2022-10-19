@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
     'unnamed.pythonanywhere.com',
@@ -44,7 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'blog',
-
+    'rest_framework',
+    'knox',
+    'registration',
 ]
 
 MIDDLEWARE = [
@@ -129,3 +131,14 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10,
+    # 'DEFAULT_AUTHENTICATION_CLASSES': 'knox.auth.TokenAuthentication',  # new 11.10.2022 Why it breaks code
+}
+
+# email
+EMAIL_HOST = 'smtp.ukr.net'
+EMAIL_PORT = 2525
+EMAIL_USE_SSL = True
