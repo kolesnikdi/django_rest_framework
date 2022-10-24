@@ -1,11 +1,14 @@
 import datetime
 import environ
+import random
+import string
 
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 from django.conf import settings
+
 
 env = environ.Env()
 environ.Env.read_env()
@@ -19,7 +22,7 @@ def final_send_mail(reg_try):
 
     registration_mail = {
         'subject': 'DjangoBoy Blog registration',
-        'message': 'DjangoBoy Blog registration',  # todo: Don't send message
+        'message': 'DjangoBoy Blog registration',
         'from_email': env('auth_user'),
         'recipient_list': [reg_try.email],
         'fail_silently': False,
@@ -43,3 +46,22 @@ def final_creation(validated_data, reg_try):
     reg_try.confirmation_time = datetime.datetime.now()
     reg_try.save()
     return user
+
+def randomizer_choice(name_for_randomize):
+    data_for_randomizer = ''.join(random.choice(string.hexdigits) for i in range(10))
+    if name_for_randomize == 'email':
+        return data_for_randomizer + "@gmail.com"
+    if name_for_randomize in ['username', 'password', 'password2']:
+        return data_for_randomizer
+    elif name_for_randomize in ['first_name', 'last_name']:
+        return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
+    if name_for_randomize == 'user':
+        user = {
+            'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+            'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+            'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+            'password': data_for_randomizer
+        }
+        return user
+    else:
+        pass

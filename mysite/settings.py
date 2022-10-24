@@ -26,8 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 
 # fixme
-# SECRET_KEY = env('SECRET_KEY') or 'super-secret-key'
-SECRET_KEY = 'super-secret-key'
+SECRET_KEY = env('SECRET_KEY')
+# SECRET_KEY = 'super-secret-key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
