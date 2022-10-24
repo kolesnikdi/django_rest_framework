@@ -4,8 +4,11 @@ import uuid
 from django.contrib.auth.models import User
 from django.urls import reverse
 
+from rest_framework import status
+
 from registration.business_logic import final_creation, randomizer_choice
 from registration.models import RegistrationTry
+from registration.serializers import CreateRegisterTrySerializer
 
 # todo: how to use Factory? And what ia it?
 # todo: Can we do as below?
@@ -42,20 +45,39 @@ class TestBLFunctional:
     # @pytest.mark.django_db
     # @pytest.mark.parametrize(
     #     'email, password, status_code', [
-    #         (None, None, 400),
-    #         (None, randomizer_choice('password'), 400),
-    #         (randomizer_choice('email'), None, 400),
+    #         ('', '', 400),
+    #         ('', randomizer_choice('password'), 400),
+    #         (randomizer_choice('email'), '', 400),
     #         (randomizer_choice('email'), 'invalid_pass', 400),
     #         (randomizer_choice('email'), randomizer_choice('password'), 201)]
     #          )
     # def test_login_data_validation(self, email, password, status_code, api_client):
-    #     url = reverse('api-auth')
+    #     url = reverse('rest_framework:login')
     #     data = {
     #         'email': email,
-    #         'password': password
+    #         'password': password,
     #     }
-    #     response = api_client.post(url, data=data)
+    #     response = api_client.post(url, data=data, format='json')
     #     assert response.status_code == status_code
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize('email', ['abc@abc.com'])
+    def test_login_data_validation(self, email, api_client):
+        url = reverse('registration')
+        data = {
+            'email': email,
+        }
+        response = api_client.post(url, data=data, format='json')
+        assert response.status_code == status.HTTP_201_CREATED
+        response_json = response.json()
+
+        assert response_json
+        assert set(response_json.keys()) == set(CreateRegisterTrySerializer.Meta.fields)
+        assert response_json['email'] == email
+
+
+
+
 
     # @pytest.mark.django_db
     # @pytest.mark.parametrize(
