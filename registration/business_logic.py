@@ -6,6 +6,7 @@ import string
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
+from django.utils import timezone
 
 from django.conf import settings
 
@@ -43,7 +44,7 @@ def final_creation(validated_data, reg_try):
     )
     user.set_password(validated_data['password'])
     user.save()
-    reg_try.confirmation_time = datetime.datetime.now()
+    reg_try.confirmation_time = timezone.now()
     reg_try.save()
     return user
 

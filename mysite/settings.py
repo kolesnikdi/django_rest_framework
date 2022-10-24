@@ -145,3 +145,6 @@ REST_FRAMEWORK = {
 EMAIL_HOST = 'smtp.ukr.net'
 EMAIL_PORT = 2525
 EMAIL_USE_SSL = True
+
+
+HOST = os.environ.get('HOST_NAME', '127.0.0.1:8000')
