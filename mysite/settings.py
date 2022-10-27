@@ -10,12 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
-import environ
 
 from pathlib import Path
 
-env = environ.Env()
-environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,11 +21,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-09o9c*xijm-a21q5--u6m^b4!fgvvufdf2iy0dh+!dh256u*o^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+HOST = os.environ.get('HOST_NAME', 'http://127.0.0.1:8000')
 ALLOWED_HOSTS = [
     'unnamed.pythonanywhere.com',
     '127.0.0.1',
@@ -45,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'blog',
     'rest_framework',
-    'knox',
     'registration',
 ]
 
@@ -135,10 +133,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
-    # 'DEFAULT_AUTHENTICATION_CLASSES': 'knox.auth.TokenAuthentication',  # new 11.10.2022 Why it breaks code
 }
 
 # email
-EMAIL_HOST = 'smtp.ukr.net'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.ukr.net')
 EMAIL_PORT = 2525
 EMAIL_USE_SSL = True
+
+
