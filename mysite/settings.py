@@ -10,12 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
-import environ
 
 from pathlib import Path
 
-env = environ.Env()
-environ.Env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,13 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-# fixme
-SECRET_KEY = env('SECRET_KEY')
-# SECRET_KEY = 'super-secret-key'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-09o9c*xijm-a21q5--u6m^b4!fgvvufdf2iy0dh+!dh256u*o^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+HOST = os.environ.get('HOST_NAME', 'http://127.0.0.1:8000')
 ALLOWED_HOSTS = [
     'unnamed.pythonanywhere.com',
     '127.0.0.1',
@@ -140,9 +136,8 @@ REST_FRAMEWORK = {
 }
 
 # email
-EMAIL_HOST = 'smtp.ukr.net'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.ukr.net')
 EMAIL_PORT = 2525
 EMAIL_USE_SSL = True
 
 
-HOST = os.environ.get('HOST_NAME', '127.0.0.1:8000')

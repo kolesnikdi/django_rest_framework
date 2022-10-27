@@ -2,33 +2,47 @@ import pytest
 import uuid
 
 from django.contrib.auth.models import User
-from django.urls import reverse
+from django.urls import reverse, NoReverseMatch
 
-from rest_framework import status
+from rest_framework import status, serializers
+from rest_framework.exceptions import ValidationError
 
-from registration.business_logic import final_creation, randomizer_choice
+from registration.business_logic import final_creation
 from registration.models import RegistrationTry
-from registration.serializers import CreateRegisterTrySerializer
-
-# todo: how to use Factory? And what ia it?
-# todo: Can we do as below?
-# @pytest.fixture
-# def user_data():
-#    return {'email': randomizer_choice('email'), 'username': randomizer_choice('username')}
+from registration.serializers import CreateRegisterTrySerializer, RegisterConfirmSerializer, UserSerializer
 
 
-@pytest.fixture
-def api_client():               # todo: For why we need it?
-   from rest_framework.test import APIClient
-   return APIClient()
+#todo: how to use Factory? And what it is?
+
+class TestValidatePassword:
+
+    def test_passwords_equal(self, random_upp2_data):
+        attrs = {
+            'password': random_upp2_data,
+            'password2': random_upp2_data,
+        }
+
+        result = RegisterConfirmSerializer.validate(None, attrs)  # todo it wants self so I give None
+        assert result['password'] == result['password2']
+
+    def test_passwords_different(self, random_upp2_data, random_name):
+        attrs = {
+            'password': random_upp2_data,
+            'password2': random_name,
+        }
+
+        with pytest.raises(ValidationError) as exc:
+            RegisterConfirmSerializer.validate(None, attrs)
+        assert "Password fields didn't match." in str(exc.value)
+        assert exc.type == ValidationError
 
 
-class TestBLFunctional:
+class TestBusinessLogic:
 
     @pytest.mark.django_db
-    def test_final_creation(self):
-        validated_data = randomizer_choice('user')
-        reg_try = RegistrationTry.objects.create(email=randomizer_choice('email'),)
+    def test_final_creation(self, random_user, random_email):
+        validated_data = random_user
+        reg_try = RegistrationTry.objects.create(email=random_email, )
 
         result = final_creation(validated_data, reg_try)
 
@@ -37,98 +51,66 @@ class TestBLFunctional:
         assert result.first_name == validated_data['first_name']
         assert result.last_name == validated_data['last_name']
         assert result.email == reg_try.email
+        for_check_reg_try = RegistrationTry.objects.filter(id=reg_try.id).first()
+        assert for_check_reg_try.confirmation_time is not None
 
-        assert reg_try.id is not None        #Did you mean this? # TODO: get reg_try from DB bu id
-        assert reg_try.creation_time is not None
-        assert reg_try.confirmation_time is not None
 
-    # @pytest.mark.django_db
-    # @pytest.mark.parametrize(
-    #     'email, password, status_code', [
-    #         ('', '', 400),
-    #         ('', randomizer_choice('password'), 400),
-    #         (randomizer_choice('email'), '', 400),
-    #         (randomizer_choice('email'), 'invalid_pass', 400),
-    #         (randomizer_choice('email'), randomizer_choice('password'), 201)]
-    #          )
-    # def test_login_data_validation(self, email, password, status_code, api_client):
-    #     url = reverse('rest_framework:login')
-    #     data = {
-    #         'email': email,
-    #         'password': password,
-    #     }
-    #     response = api_client.post(url, data=data, format='json')
-    #     assert response.status_code == status_code
+class TestApiClientView:
 
     @pytest.mark.django_db
-    @pytest.mark.parametrize('email', ['abc@abc.com'])
-    def test_login_data_validation(self, email, api_client):
-        url = reverse('registration')
-        data = {
-            'email': email,
-        }
-        response = api_client.post(url, data=data, format='json')
+    def test_registration_valid_data(self, reg_try):
+        response = reg_try
         assert response.status_code == status.HTTP_201_CREATED
         response_json = response.json()
-
-        assert response_json
+        assert response_json  # todo - What we check by this command?
         assert set(response_json.keys()) == set(CreateRegisterTrySerializer.Meta.fields)
-        assert response_json['email'] == email
+        assert response_json['email'] == reg_try.data['email']
 
+    @pytest.mark.django_db
+    def test_registration_null_data(self, api_client):
+        url = reverse('registration')
+        data = {
+            'email': None,
+        }
+        response = api_client.post(url, data=data, format='json')
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        response_json = response.json()
+        assert response_json  # todo - What we check by this command?
 
+    @pytest.mark.django_db
+    def test_full_registration_valid_data(self, api_client, reg_try, random_user):
+        data_reg_try = RegistrationTry.objects.get(email=reg_try.data['email'])
+        code = data_reg_try.code
+        url = reverse('registration_confirm', args=[code])
+        random_user.update({'password2': random_user['password']})
+        response = api_client.post(url, data=random_user, format='json')
 
+        assert response.status_code == status.HTTP_201_CREATED
+        response_json = response.json()
+        assert response_json  # todo - What we check by this command?
+        assert set(response_json.keys()) == set(UserSerializer.Meta.fields)
+        assert response_json['username'] == random_user['username']
+        assert response_json['email'] == reg_try.data['email']
+        assert response_json['blogs'] == []
+        for_check_reg_try = RegistrationTry.objects.get(id=data_reg_try.id)
+        assert for_check_reg_try.confirmation_time is not None
+        for_check_user = User.objects.get(username=random_user['username'])
+        assert for_check_user.first_name == random_user['first_name']
+        assert for_check_user.last_name == random_user['last_name']
 
+    @pytest.mark.django_db
+    def test_full_registration_reg_done_code(self, api_client, random_user, reg_done_code):
+        url = reverse('registration_confirm', args=[reg_done_code])
+        random_user.update({'password2': random_user['password']})
+        response = api_client.post(url, data=random_user, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        response_json = response.json()
+        assert response_json  # todo - What we check by this command?
+        assert response_json['detail'] == 'Not found.'
 
-    # @pytest.mark.django_db
-    # @pytest.mark.parametrize(
-    #     'username, email, first_name, last_name, password, status_code', [
-    #         (randomizer_choice('username'), randomizer_choice('email'), randomizer_choice('first_name'),  # todo - Нащо ми тут задаєм параметри, якщо потім їх вказуємо в pytest.param?
-    #          randomizer_choice('last_name'), 'invalid_pass', 400),  # todo - Це взаємопризнана команда що пароль не вірний?
-    #         pytest.param(None, None, None, None, None, 400,marks=pytest.mark.bad_request),
-    #         pytest.param(None, None, None, None,'strong_pass', 400, marks=pytest.mark.bad_request,
-    #                      id='bad_request_with_pass'),  # todo - Це взаємопризнана команда що пароль вірний?
-    #         pytest.param(None, randomizer_choice('email'), None, None, 400, marks=[pytest.mark.bad_request, pytest.mark.xfail],
-    #                      id='incomprehensible_behavior'),
-    #         pytest.param(randomizer_choice('username'), randomizer_choice('email'), randomizer_choice('first_name'),
-    #                      randomizer_choice('last_name'), randomizer_choice('password'), 201,
-    #                      marks=pytest.mark.success_request),
-    #     ]
-    # )
-    # def test_registration_confirm_data_validation(self, username, email, first_name, last_name,
-    #                                         password, status_code, api_client):
-    #     url = reverse('registration_confirm')
-    #     validated_data = {
-    #         'username': username,
-    #         'email': email,
-    #         'first_name': first_name,
-    #         'last_name': last_name,
-    #         'password': password
-    #     }
-    #     response = api_client.post(url, data=validated_data)
-    #     assert response.status_code == status_code
-    #     assert isinstance(response, User)
-    #     assert response.username == validated_data['username']
-    #     assert response.first_name == validated_data['first_name']
-    #     assert response.last_name == validated_data['last_name']
-    #     assert response.email == validated_data['email']
-
-    # @pytest.mark.django_db
-    # def test_registration_confirm_data_validation(self, status_code, api_client):
-    #     url = reverse('registration')
-    #     validated_data = {'email': randomizer_choice('email'), 'status_code': 201}
-    #     response = api_client.post(url, data=validated_data)
-    #
-    #     assert isinstance(response, RegistrationTry)
-    #     assert isinstance(response.code, uuid.uuid4)
-    #     assert response.status_code == validated_data['status_code']
-    #     assert response.id is not None  # Did you mean this? # TODO: get reg_try from DB bu id
-    #     assert response.creation_time is not None
-    #     assert response.confirmation_time is not None
-
-    # @pytest.mark.django_db
-    # def test_view(client):
-    #    url = reverse('post')
-    #    response = client.get(url)
-    #    assert response.status_code == 200
-
-
+    @pytest.mark.django_db
+    def test_full_registration_invalid_code(self,
+                                            random_upp2_data):  # todo: тут перевірка на рівні - django.urls - тому не бачу необхідності в перевірці.
+        with pytest.raises(NoReverseMatch) as exc:
+            reverse('registration_confirm', args=[random_upp2_data])
+        assert exc.type == NoReverseMatch

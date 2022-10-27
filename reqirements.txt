@@ -1,6 +1,5 @@
 Django==4.1.2
 djangorestframework==3.14.0
-django-rest-knox==4.2.0
 pygments==2.13.0
 dj-static==0.0.6
 static3==0.7.0
