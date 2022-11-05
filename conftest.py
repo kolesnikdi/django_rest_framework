@@ -122,6 +122,12 @@ def reg_done_code(api_client, reg_try, randomizer):
 
 
 @pytest.fixture
-def created_blog(authenticated_user, randomizer):
-    blog = Post.objects.create(author=authenticated_user, title=randomizer.random_name(), text=randomizer.upp2_data())
+def created_blog(my_user, randomizer):
+    blog = Post.objects.create(author=my_user, title=randomizer.random_name(), text=randomizer.upp2_data())
+    return blog
+
+
+@pytest.fixture
+def created_blog_bu_user_second(my_user_second, randomizer):
+    blog = Post.objects.create(author=my_user_second, title=randomizer.random_name(), text=randomizer.upp2_data())
     return blog

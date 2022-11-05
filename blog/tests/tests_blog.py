@@ -82,13 +82,13 @@ class TestSnippetViewSet:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.django_db
-    def test_post_valid_data_delete(self, api_client, created_blog, randomizer):
+    def test_post_valid_data_delete(self, authenticated_client, created_blog, randomizer):
         url = reverse('post-detail', kwargs={'pk': created_blog.id})
-        response = api_client.delete(url, format='json')
+        response = authenticated_client.delete(url, format='json')
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
     @pytest.mark.django_db
-    def test_post_valid_data_delete_not_owner(self, authenticated_client, created_blog):  # todo maybe pytest don`t see permisions?
-        url = reverse('post-detail', kwargs={'pk': created_blog.id})
+    def test_post_valid_data_delete_not_owner(self, authenticated_client, created_blog_bu_user_second):  # todo maybe pytest don`t see permisions?
+        url = reverse('post-detail', kwargs={'pk': created_blog_bu_user_second.id})
         response = authenticated_client.delete(url, format='json')
         assert response.status_code == status.HTTP_403_FORBIDDEN
