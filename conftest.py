@@ -4,93 +4,65 @@ import string
 
 from django.urls import reverse
 from rest_framework.test import APIClient
+
+from blog.models import Post
 from registration.models import RegistrationTry
 
-
-# @pytest.fixture(scope='function')
-# def randomizer_choice(name_for_randomize): # todo - not supported. Can't take argument
-#    data_for_randomizer = ''.join(random.choice(string.hexdigits) for i in range(10))
-#    if name_for_randomize == 'email':
-#       return data_for_randomizer + "@gmail.com"
-#    if name_for_randomize in ['username', 'password', 'password2']:
-#       return data_for_randomizer
-#    if name_for_randomize in ['first_name', 'last_name']:
-#       return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
-#    if name_for_randomize == 'user':
-#       user = {
-#          'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#          'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#          'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#          'password': data_for_randomizer
-#       }
-#       return user
-
-
-# @pytest.fixture(scope='function')  # todo - ValueError: class fixtures not supported (maybe in the future)
-# class Randomizer_choice:
-#
-#    data_for_randomizer = ''.join(random.choice(string.hexdigits) for i in range(10))
-#
-#    @pytest.fixture(scope='function')
-#    def r_email(self):
-#       return self.data_for_randomizer + "@gmail.com"
-#
-#    def upp2_data(self):
-#       """ randomize data for username, password, password2"""
-#       return self.data_for_randomizer
-#
-#    def _name(self):
-#       """ randomize data for first_name, last_name"""
-#       return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
-#
-#    def user(self):
-#       user = {
-#          'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#          'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#          'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#          'password': self.data_for_randomizer
-#       }
-#       return user
-
-data_for_randomizer = ''.join(random.choice(string.hexdigits) for i in range(10))
+"""randomizers"""
 
 
 @pytest.fixture(scope='function')
-def random_email():
-    return data_for_randomizer + "@gmail.com"
+def randomizer():
+    return Randomizer()
 
 
-@pytest.fixture(scope='function')
-def random_upp2_data():
-    """ randomize data for username, password, password2"""
-    return ''.join(random.choice(string.hexdigits) for i in range(10))
+class Randomizer:
+
+    def email(self):
+        """ randomize data for email"""
+        return ''.join(random.choice(string.hexdigits) for i in range(10)) + "@gmail.com"
+
+    def upp2_data(self):
+        """ randomize data for username, password, password2"""
+        return ''.join(random.choice(string.hexdigits) for i in range(10))
+
+    def random_name(self):
+        """ randomize data for first_name, last_name"""
+        return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
+
+    def user(self):
+        """ randomize data user"""
+        user = {
+            'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+            'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+            'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+            'password': ''.join(random.choice(string.hexdigits) for i in range(10))
+        }
+        return user
 
 
-@pytest.fixture(scope='function')
-def random_name():
-    """ randomize data for first_name, last_name"""
-    return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
+@pytest.fixture(scope='function')  # just for practice
+def randomizer_func():
+    def _choice(name_for_randomize):
+        if name_for_randomize == 'email':
+            return ''.join(random.choice(string.hexdigits) for i in range(10)) + "@gmail.com"
+        if name_for_randomize in ['username', 'password', 'password2']:
+            return ''.join(random.choice(string.hexdigits) for i in range(10))
+        if name_for_randomize in ['first_name', 'last_name']:
+            return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
+        if name_for_randomize == 'user':
+            user = {
+                'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+                'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+                'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
+                'password': ''.join(random.choice(string.hexdigits) for i in range(10))
+            }
+            return user
+
+    return _choice
 
 
-@pytest.fixture(scope='function')
-def random_user():
-    user = {
-        'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-        'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-        'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-        'password': data_for_randomizer
-    }
-    return user
-
-
-@pytest.fixture
-def reg_try(random_email, api_client):
-    url = reverse('registration')
-    data = {
-        'email': random_email,
-    }
-    response = api_client.post(url, data=data, format='json')
-    return response
+"""created custom users"""
 
 
 @pytest.fixture
@@ -98,31 +70,64 @@ def api_client():
     return APIClient()
 
 
+@pytest.fixture(scope='function')
+def my_user(django_user_model, randomizer):
+    return django_user_model.objects.create_user(username=randomizer.random_name(), password=randomizer.upp2_data())
+
+
+@pytest.fixture(scope='function')
+def my_user_second(django_user_model, randomizer):
+    return django_user_model.objects.create_user(username=randomizer.upp2_data(), password=randomizer.random_name())
+
+
+@pytest.fixture(scope='function')
+def authenticated_client(api_client, my_user):
+    api_client.force_login(my_user)
+    api_client.user = my_user
+    yield api_client  # return api_client with authenticated user (like method)
+
+
+@pytest.fixture(scope='function')
+def authenticated_user(api_client, my_user_second):
+    api_client.force_login(my_user_second)
+    return my_user_second  # return authenticated user
+    # return api_client.force_login(my_user) # return only authentication
+
+
+"""fixture for registration app"""
+
+
 @pytest.fixture
-def reg_done_code(api_client, reg_try, random_user):
+def reg_try(randomizer, api_client):
+    url = reverse('registration')
+    data = {
+        'email': randomizer.email(),
+    }
+    response = api_client.post(url, data=data, format='json')
+    return response
+
+
+@pytest.fixture
+def reg_done_code(api_client, reg_try, randomizer):
+    validated_data = randomizer.user()
     data_reg_try = RegistrationTry.objects.get(email=reg_try.data['email'])
-    code = data_reg_try.code
-    url = reverse('registration_confirm', args=[code])
-    random_user.update({'password2': random_user['password']})
-    response = api_client.post(url, data=random_user, format='json')
+    url = reverse('registration_confirm', args=[data_reg_try.code])
+    validated_data.update({'password2': validated_data['password']})
+    api_client.post(url, data=validated_data, format='json')
     for_check_reg_try = RegistrationTry.objects.get(id=data_reg_try.id)
     return for_check_reg_try.code
 
-# todo - can not finde way to make @pytest.mark.django_db(autouse=True)
-# @pytest.fixture(autouse=True)
-# @pytest.mark.django_db
-# def django_db():
-#    ...
-#
-# @pytest.fixture(autouse=True)
-# class TestTest:
-#     @pytest.mark.django_db
 
-# @pytest.mark.django_db
-# @pytest.fixture(scope='session', autouse=True)
-# def db(request, django_db_blocker):
-#     """
-#     Override pytest-django `db` fixture to be session scoped
-#     """
-#     django_db_blocker.unblock()
-#     return
+"""fixture for blog app"""
+
+
+@pytest.fixture
+def created_blog(my_user, randomizer):
+    blog = Post.objects.create(author=my_user, title=randomizer.random_name(), text=randomizer.upp2_data())
+    return blog
+
+
+@pytest.fixture
+def created_blog_bu_user_second(my_user_second, randomizer):
+    blog = Post.objects.create(author=my_user_second, title=randomizer.random_name(), text=randomizer.upp2_data())
+    return blog

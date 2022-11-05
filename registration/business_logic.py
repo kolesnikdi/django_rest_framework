@@ -1,6 +1,4 @@
 import os
-import random
-import string
 
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
@@ -40,21 +38,3 @@ def final_creation(validated_data, reg_try):
     reg_try.confirmation_time = timezone.now()
     reg_try.save()
     return user
-
-# todo - Навіть і не знаю чи лаконічніше тримати це тут чи в фікстурах.
-# def randomizer_choice(name_for_randomize):
-#     data_for_randomizer = ''.join(random.choice(string.hexdigits) for i in range(10))
-#     if name_for_randomize == 'email':
-#         return data_for_randomizer + "@gmail.com"
-#     if name_for_randomize in ['username', 'password', 'password2']:
-#         return data_for_randomizer
-#     elif name_for_randomize in ['first_name', 'last_name']:
-#         return ''.join(random.choice(string.ascii_letters) for i in range(10)).title()
-#     if name_for_randomize == 'user':
-#         user = {
-#             'username': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#             'first_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#             'last_name': ''.join(random.choice(string.ascii_letters) for i in range(10)).title(),
-#             'password': data_for_randomizer
-#         }
-#         return user

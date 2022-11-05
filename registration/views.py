@@ -10,12 +10,14 @@ from mysite.permissions import IsNotAuthenticated, IsAdminUserOrReadOnly
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    # turn off post - viewsets.ReadOnlyModelViewSet чи generics.RetrieveAPIView чи ListAPIView
     """
-    Can see blog text and can change author of the blog. Can create new author
+    Allows Admin to change author of the blog and create new author with performing the previous action/
     """
     queryset = User.objects.all().order_by('-date_joined')
-    serializer_class = RegisterConfirmSerializer
+    serializer_class = UserSerializer
     permission_classes = [IsAdminUserOrReadOnly]
+
 
 
 class RegisterTryView(generics.CreateAPIView):
