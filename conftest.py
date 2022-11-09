@@ -5,7 +5,7 @@ import string
 from django.urls import reverse
 from rest_framework.test import APIClient
 
-from blog.models import Post
+from blog.models import Post, Comment
 from registration.models import RegistrationTry
 
 """randomizers"""
@@ -39,6 +39,10 @@ class Randomizer:
             'password': ''.join(random.choice(string.hexdigits) for i in range(10))
         }
         return user
+
+    def random_digits(self):
+        """ randomize digits"""
+        return ''.join(random.choice(string.digits) for i in range(10))
 
 
 @pytest.fixture(scope='function')  # just for practice
@@ -83,15 +87,9 @@ def my_user_second(django_user_model, randomizer):
 @pytest.fixture(scope='function')
 def authenticated_client(api_client, my_user):
     api_client.force_login(my_user)
+    # return my_user # ---> If we return only user than we need to add api_client to all tests
     api_client.user = my_user
-    yield api_client  # return api_client with authenticated user (like method)
-
-
-@pytest.fixture(scope='function')
-def authenticated_user(api_client, my_user_second):
-    api_client.force_login(my_user_second)
-    return my_user_second  # return authenticated user
-    # return api_client.force_login(my_user) # return only authentication
+    return api_client  # return api_client with authenticated user (like method)
 
 
 """fixture for registration app"""
@@ -118,10 +116,24 @@ def reg_done_code(api_client, reg_try, randomizer):
     return for_check_reg_try.code
 
 
-"""fixture for blog app"""
+"""fixture for blog app --> Post model"""
 
 
 @pytest.fixture
-def created_blog(authenticated_user, randomizer):
-    blog = Post.objects.create(author=authenticated_user, title=randomizer.random_name(), text=randomizer.upp2_data())
+def created_blog(my_user, randomizer):
+    blog = Post.objects.create(author=my_user, title=randomizer.random_name(), text=randomizer.upp2_data())
     return blog
+
+
+@pytest.fixture
+def created_blog_user_second(my_user_second, randomizer):
+    blog = Post.objects.create(author=my_user_second, title=randomizer.random_name(), text=randomizer.upp2_data())
+    return blog
+
+
+"""fixture for blog app --> Comment model"""
+
+@pytest.fixture
+def created_comment(my_user, created_blog, randomizer):
+    comment = Comment.objects.create(author=my_user, blog=created_blog, text=randomizer.upp2_data())
+    return comment
