@@ -8,4 +8,4 @@ router.register(r'post', views.SnippetViewSet, basename='post')
 
 urlpatterns = [path('', include(router.urls)),
                re_path('post/(?P<id>\d+)/comment', views.CommentsView.as_view(), name='comments'),
-               ]
+              ]
