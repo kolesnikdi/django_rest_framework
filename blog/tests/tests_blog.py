@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from blog.models import Comment
-from blog.serializers import SnippetSerializer, CommentsSerializer
+from blog.serializers import SnippetSerializer, CommentsSerializer, SnippetSerializerPutPost
 
 
 class TestSnippetViewSet:
@@ -37,12 +37,12 @@ class TestSnippetViewSet:
         data = {
             'title': randomizer.random_name(),
             'text': randomizer.upp2_data(),
-            'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
+            # 'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
         }
         response = authenticated_client.post(url, data=data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
         assert response.json()
-        assert set(response.json().keys()) == set(SnippetSerializer.Meta.fields)
+        assert set(response.json().keys()) == set(SnippetSerializerPutPost.Meta.fields)
         assert response.json()['title'] == data['title']
         assert response.json()['text'] == data['text']
 
@@ -65,12 +65,12 @@ class TestSnippetViewSet:
         data = {
             'title': randomizer.random_name(),
             'text': randomizer.upp2_data(),
-            'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
+            # 'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
         }
         response = authenticated_client.put(url, data=data, format='json')
         assert response.status_code == status.HTTP_200_OK
         assert response.json()
-        assert set(response.json().keys()) == set(SnippetSerializer.Meta.fields)
+        assert set(response.json().keys()) == set(SnippetSerializerPutPost.Meta.fields)
         assert response.json()['title'] != created_blog.title
         assert response.json()['text'] != created_blog.text
 
@@ -166,4 +166,10 @@ class TestCommentsView:
         }
         response = authenticated_client.post(url, data=data, format='json')
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.json()
+
+    @pytest.mark.django_db
+    def test_get_invalid_blog_id(self, authenticated_client, randomizer):  # todo Мабуть перевірити ніяк
+        url = reverse('comments', kwargs={'id': randomizer.random_digits()})
+        data = {}
+        response = authenticated_client.get(url, data=data, format='json')
+        assert response.status_code == status.HTTP_404_NOT_FOUND
