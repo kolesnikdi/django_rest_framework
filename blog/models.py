@@ -9,6 +9,12 @@ class Post(models.Model):
     created_date = models.DateTimeField(default=timezone.now)
     published_date = models.DateTimeField(blank=True, null=True)
 
-
     def __str__(self):
         return self.title
+
+
+class Comment(models.Model):
+    author = models.ForeignKey('auth.User', related_name='comments', on_delete=models.CASCADE)
+    blog = models.ForeignKey('blog.Post', related_name='comments', on_delete=models.CASCADE)
+    text = models.TextField(max_length=500)
+    published_date = models.DateTimeField(default=timezone.now)
