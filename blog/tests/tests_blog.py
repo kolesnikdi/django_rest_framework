@@ -167,6 +167,3 @@ class TestCommentsView:
         response = authenticated_client.post(url, data=data, format='json')
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json()
-
-
-
