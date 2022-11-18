@@ -14,6 +14,16 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['id', 'url', 'username', 'email', 'blogs']
 
 
+class UserSerializerPutPost(serializers.HyperlinkedModelSerializer):
+    """
+    Allows Admin to create new author (user). We can add new fild - 'password' to make new user with password
+    """
+
+    class Meta:
+        model = User
+        fields = ['id', 'url', 'username', 'email']
+
+
 class RegisterConfirmSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)

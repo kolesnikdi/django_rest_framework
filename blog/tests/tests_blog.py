@@ -37,7 +37,6 @@ class TestSnippetViewSet:
         data = {
             'title': randomizer.random_name(),
             'text': randomizer.upp2_data(),
-            # 'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
         }
         response = authenticated_client.post(url, data=data, format='json')
         assert response.status_code == status.HTTP_201_CREATED
@@ -65,7 +64,6 @@ class TestSnippetViewSet:
         data = {
             'title': randomizer.random_name(),
             'text': randomizer.upp2_data(),
-            # 'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
         }
         response = authenticated_client.put(url, data=data, format='json')
         assert response.status_code == status.HTTP_200_OK
@@ -75,7 +73,7 @@ class TestSnippetViewSet:
         assert response.json()['text'] != created_blog.text
 
     @pytest.mark.django_db
-    def test_post_valid_data_change_not_owner(self, authenticated_client, created_blog_user_second, randomizer):  # todo maybe pytest don`t see permisions?
+    def test_post_valid_data_change_not_owner(self, authenticated_client, created_blog_user_second, randomizer):
         url = reverse('post-detail', kwargs={'pk': created_blog_user_second.id})
         data = {
             'title': randomizer.random_name(),
@@ -98,12 +96,10 @@ class TestSnippetViewSet:
 
     @pytest.mark.django_db
     def test_comment_in_blog(self, authenticated_client, randomizer):
-
         url1 = reverse('post-list')
         data1 = {
             'title': randomizer.random_name(),
             'text': randomizer.upp2_data(),
-            'comments': Comment.objects.all(),  # modify or delete. According to line 8 'comments' blog. serializer
         }
         response_blog = authenticated_client.post(url1, data=data1, format='json')
 
@@ -159,7 +155,8 @@ class TestCommentsView:
         assert response.json()['text'] == ['This field may not be null.']
 
     @pytest.mark.django_db
-    def test_post_invalid_blog_id(self, authenticated_client, randomizer):      # todo Мабуть перевірити ніяк
+    def test_post_invalid_blog_id(self, authenticated_client, randomizer):
+        """For normal work must be 'raise exceptions' in permissions, not in views"""
         url = reverse('comments', kwargs={'id': randomizer.random_digits()})
         data = {
             'text': randomizer.upp2_data(),
@@ -168,7 +165,8 @@ class TestCommentsView:
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     @pytest.mark.django_db
-    def test_get_invalid_blog_id(self, authenticated_client, randomizer):  # todo Мабуть перевірити ніяк
+    def test_get_invalid_blog_id(self, authenticated_client, randomizer):
+        """For normal work must be 'raise exceptions' in permissions, not in views"""
         url = reverse('comments', kwargs={'id': randomizer.random_digits()})
         data = {}
         response = authenticated_client.get(url, data=data, format='json')

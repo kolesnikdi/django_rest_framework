@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from rest_framework import permissions, renderers, viewsets, generics, status, exceptions
+from rest_framework import permissions, renderers, viewsets, generics, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -15,6 +15,7 @@ class SnippetViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
+        """"Allows to change Serializer according to the request method"""
         if self.request.method in ['POST', 'PUT']:
             return SnippetSerializerPutPost
         return self.serializer_class
@@ -37,9 +38,6 @@ class CommentsView(generics.ListCreateAPIView):  # ListCreateAPIView gives list 
     lookup_field = 'id'
 
     def post(self, request, *args, **kwargs):
-        # post = Post.objects.filter(id=self.kwargs['id'])
-        # if not post:
-        #     raise exceptions.NotFound()
         user = self.request.user
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -50,13 +48,6 @@ class CommentsView(generics.ListCreateAPIView):  # ListCreateAPIView gives list 
             self.serializer_class(instance=comment).data,
             status=status.HTTP_201_CREATED,
         )
-
-    # def list(self, request, *args, **kwargs):
-    #     """filter by id. if blog with request id doesn`t exist it will rise exception"""
-    #     post = Post.objects.filter(id=self.kwargs['id'])
-    #     if not post:
-    #         raise exceptions.NotFound()
-    #     return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         """filter and returns the comments that belongs to current blog"""
