@@ -1,44 +1,57 @@
-from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
 
-from blog.models import Post
-from blog.forms import PostForm
+from rest_framework import permissions, renderers, viewsets, generics, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from mysite.permissions import IsOwnerOrReadOnly, IsPostIdExists
+from blog.models import Post, Comment
+from blog.serializers import SnippetSerializer, CommentsSerializer, SnippetSerializerPutPost
 
 
-def post_list(request):
-    posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
-    return render(request, 'blog/post_list.html', {'posts': posts})
+class SnippetViewSet(viewsets.ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+
+    def get_serializer_class(self):
+        """"Allows to change Serializer according to the request method"""
+        if self.request.method in ['POST', 'PUT']:
+            return SnippetSerializerPutPost
+        return self.serializer_class
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        """open blog text in the new link"""
+        blog_text = self.get_object()
+        return Response(blog_text.text)
+
+    def perform_create(self, serializer):
+        """signs the post by name of user. Signs the post by current time"""
+        serializer.save(author=self.request.user, published_date=timezone.now())
 
 
-def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    return render(request, 'blog/post_detail.html', {'post': post})
+class CommentsView(generics.ListCreateAPIView):  # ListCreateAPIView gives list of the posts
+    queryset = Comment.objects.all()
+    serializer_class = CommentsSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsPostIdExists]
+    lookup_field = 'id'
 
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comment = serializer.save(author_id=user.id, blog_id=kwargs['id'])
+        # blog_id gives id of the blog to the lookup_field
 
-def post_new(request):
-    if request.method == "POST":
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.published_date = timezone.now()
-            post.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm()
-    return render(request, 'blog/post_edit.html', {'form': form})
+        return Response(
+            self.serializer_class(instance=comment).data,
+            status=status.HTTP_201_CREATED,
+        )
 
-
-def post_edit(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if request.method == "POST":
-        form = PostForm(request.POST, instance=post)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.published_date = timezone.now()
-            post.save()
-            return redirect('post_detail', pk=post.pk)
-    else:
-        form = PostForm(instance=post)
-    return render(request, 'blog/post_edit.html', {'form': form})
+    def get_queryset(self):
+        """filter and returns the comments that belongs to current blog"""
+        qs = self.queryset.filter(
+            blog_id=self.kwargs['id'],
+        )
+        return qs
