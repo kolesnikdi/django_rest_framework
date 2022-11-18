@@ -133,6 +133,7 @@ def created_blog_user_second(my_user_second, randomizer):
 
 """fixture for blog app --> Comment model"""
 
+
 @pytest.fixture
 def created_comment(my_user, created_blog, randomizer):
     comment = Comment.objects.create(author=my_user, blog=created_blog, text=randomizer.upp2_data())
